@@ -1,0 +1,23 @@
+---
+title: "Geospatial visualizations"
+author: "William Lizr"
+date: "2023-01-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Visualizing your data by geography
+
+```{r}
+
+ 
+
+
+
+
+
+```
+

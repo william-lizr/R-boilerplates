@@ -1,0 +1,222 @@
+---
+title: "Beautifying visualizations"
+author: "William Lizr"
+date: "2023-01-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# adding the necessary libraries
+```{r}
+library(tidyverse)
+```
+
+
+# importing our test dataset
+```{r}
+
+# import csv
+college_df <- read_csv(file = "college_dataset.csv")
+
+```
+
+# THemes and CHart BAckgrounds
+```{r}
+# plot.background = ...     — color around the plot
+# panel.background = ...    — color inside the plot
+# panel.grid.major = ...
+# panel.grid.minor = ...
+
+# to change this we use the theme() command
+ggplot(college_df) + geom_boxplot(aes(x = control, y = tuition, fill = control), outlier.color = 'red')
+
+
+ggplot(college_df) + geom_boxplot(aes(x = control, y = tuition, fill = control), outlier.color = 'red') + theme(panel.background = element_rect(fill = 'blue'))
+
+ggplot(college_df) + geom_boxplot(aes(x = control, y = tuition, fill = control), outlier.color = 'red') + theme(plot.background = element_rect(fill = 'blue'))
+
+# we can also delete the certain elements using element_blank()
+# we are essentially modifying element_rect() color
+# or we are filling it with a blank parameter using element_blank()
+
+ggplot(college_df) + geom_boxplot(aes(x = control, y = tuition, fill = control), outlier.color = 'red') + theme(panel.background = element_blank())
+
+# the plot looks pretty blank right now, lets add back some gridlines
+ggplot(college_df) + geom_boxplot(aes(x = control, y = tuition, fill = control), outlier.color = 'red') + theme(panel.background = element_blank()) + theme(panel.grid.major = element_line(color = 'grey'))
+
+#but what if we only want X or Y coordinates on the graph
+ggplot(college_df) + geom_boxplot(aes(x = control, y = tuition, fill = control), outlier.color = 'red') + theme(panel.background = element_blank()) + theme(panel.grid.major.x = element_line(color = 'grey'))
+
+ggplot(college_df) + geom_boxplot(aes(x = control, y = tuition, fill = control), outlier.color = 'red') + theme(panel.background = element_blank()) + theme(panel.grid.major.y = element_line(color = 'grey'))
+
+```
+
+# Working with the plot axes
+```{r}
+#LABELS
+# xlab() for x label
+# ylab() for y label
+ggplot(college_df) + geom_boxplot(aes(x = control, y = tuition, fill = control), outlier.color = 'red') + theme(panel.background = element_blank()) + theme(panel.grid.major.x = element_line(color = 'grey')) + xlab('Control type') + ylab('Tuition')
+
+#LIMITS
+# ylim()
+# xlim()
+ggplot(college_df) + geom_boxplot(aes(x = control, y = tuition, fill = control), outlier.color = 'red') + theme(panel.background = element_blank()) + theme(panel.grid.major.x = element_line(color = 'grey')) + ylim(0, 40000)
+
+```
+
+# CHANGING SCALES
+```{r}
+# we use
+# scale_name_datatype
+# e.g.: scale_x_discreet
+# or scale_y_continuous
+
+# here we use the above commands to change the x and y labels, and we set the limits within the functions
+ggplot(college_df) + geom_boxplot(aes(x = control, y = tuition, fill = control), outlier.color = 'red') + theme(panel.background = element_blank()) + theme(panel.grid.major.x = element_line(color = 'grey')) + scale_x_discrete(name = 'Control of Uni') + scale_y_continuous(name = "Tuition cost", limits = c(0, 40000))
+
+
+
+# we can also choose the fill colors ourselves using scale_fill_manual()
+ggplot(college_df) + geom_boxplot(aes(x = control, y = tuition, fill = control), outlier.color = 'red') + theme(panel.background = element_blank()) + theme(panel.grid.major.x = element_line(color = 'grey')) + scale_x_discrete(name = 'Control of Uni') + scale_y_continuous(name = "Tuition cost", limits = c(0, 40000)) + scale_fill_manual(values=c("Grey", "Green"), guide = guide_legend(title ="Institution type", nrow = 2, keywidth = 5, label.position = "bottom"))
+```
+
+
+# Changing the LEGEND
+```{r}
+# using guide_legend()
+# we add to scale_fill_manual()
+ggplot(college_df) + geom_boxplot(aes(x = control, y = tuition, fill = control), outlier.color = 'red') + theme(panel.background = element_blank()) + theme(panel.grid.major.x = element_line(color = 'grey')) + scale_x_discrete(name = 'Control of Uni') + scale_y_continuous(name = "Tuition cost", limits = c(0, 40000)) + scale_fill_manual(values=c("Grey", "Green"), guide = guide_legend(title ="Institution type:", nrow = 2, keywidth = 2, label.position = "bottom"))
+
+
+# to move the legend to a different position, we use the theme(legend.position="...")
+# bottom
+ggplot(college_df) + geom_boxplot(aes(x = control, y = tuition, fill = control), outlier.color = 'red') + theme(panel.background = element_rect(color = "Grey")) + theme(panel.grid.major.x = element_line(color = 'grey')) + scale_x_discrete(name = 'Control of Uni') + scale_y_continuous(name = "Tuition cost", limits = c(0, 40000)) + scale_fill_manual(values=c("Grey", "Green"), guide = guide_legend(title ="Institution type:", nrow = 1, keywidth = 8, label.position = "bottom")) + theme(legend.position = "bottom")
+#top
+ggplot(college_df) + geom_boxplot(aes(x = control, y = tuition, fill = control), outlier.color = 'red') + theme(panel.background = element_rect(color = "Grey")) + theme(panel.grid.major.x = element_line(color = 'grey')) + scale_x_discrete(name = 'Control of Uni') + scale_y_continuous(name = "Tuition cost", limits = c(0, 40000)) + scale_fill_manual(values=c("Grey", "Green"), guide = guide_legend(title ="Institution type:", nrow = 1, keywidth = 8, label.position = "bottom")) + theme(legend.position = "top")
+```
+
+# Anottating your visualizations
+## putting labels into your visualizations (putting text on the chart)
+```{r}
+# lets make an example graph correlating tuition and faculty salary
+ggplot(data = college_df, mapping = aes(x = tuition , y = faculty_salary_avg)) + geom_point(mapping = aes(color = sat_avg)) + geom_smooth(color = "red")
+
+
+# annotate() function
+# adds an annotation at specified coordinates (see the 'Ivy Leagues' label)
+ggplot(data = college_df, mapping = aes(x = tuition , y = faculty_salary_avg)) + geom_point(mapping = aes(color = sat_avg, size = undergrads)) + geom_smooth(color = "red") + annotate("text", label = "Ivy Leagues", x = (mean(college_df$tuition)+25000), y = (mean(college_df$faculty_salary_avg)+9000))
+
+
+# geom_hline()
+# adds a horizontal line somewhere
+ggplot(data = college_df, mapping = aes(x = tuition , y = faculty_salary_avg)) + geom_point(mapping = aes(color = sat_avg)) + geom_smooth(color = "red") + annotate("text", label = "Ivy Leagues", x = (mean(college_df$tuition)+25000), y = (mean(college_df$faculty_salary_avg)+9000)) + geom_hline(yintercept = mean(college_df$faculty_salary_avg))
+
+
+# geom_vline()
+# adds a vertical line somewhere
+ggplot(data = college_df, mapping = aes(x = tuition , y = faculty_salary_avg)) + geom_point(mapping = aes(color = sat_avg)) + geom_smooth(color = "red") + annotate("text", label = "Ivy Leagues", x = (mean(college_df$tuition)+25000), y = (mean(college_df$faculty_salary_avg)+9000)) + geom_hline(yintercept = mean(college_df$faculty_salary_avg)) + geom_vline(xintercept = mean(college_df$tuition))
+
+
+# combine the two to make mean annotations, or select lines in ranges with a label
+
+```
+
+
+# adding TITLES and SUBTITLES
+```{r}
+
+ggplot(data = college_df, mapping = aes(x = tuition , y = faculty_salary_avg)) + geom_point(mapping = aes(color = sat_avg)) + geom_smooth(color = "red") + annotate("text", label = "Ivy Leagues", x = (mean(college_df$tuition)+25000), y = (mean(college_df$faculty_salary_avg)+9000)) + geom_hline(yintercept = mean(college_df$faculty_salary_avg)) + geom_vline(xintercept = mean(college_df$tuition)) + ggtitle("My Graph", subtitle = "This is a graph i made")
+
+```
+
+# adding predefined themes
+```{r}
+ggplot(data = college_df, mapping = aes(x = tuition , y = faculty_salary_avg)) + geom_point(mapping = aes(color = sat_avg)) + geom_smooth(color = "red") + annotate("text", label = "Ivy Leagues", x = (mean(college_df$tuition)+25000), y = (mean(college_df$faculty_salary_avg)+9000)) + geom_hline(yintercept = mean(college_df$faculty_salary_avg)) + geom_vline(xintercept = mean(college_df$tuition)) + theme_minimal()
+
+# we can also import the ggthemes() library for more theme options: here we have theme_solarized()
+ggplot(data = college_df, mapping = aes(x = tuition , y = faculty_salary_avg)) + geom_point(mapping = aes(color = sat_avg)) + geom_smooth(color = "red") + annotate("text", label = "Ivy Leagues", x = (mean(college_df$tuition)+25000), y = (mean(college_df$faculty_salary_avg)+9000)) + geom_hline(yintercept = mean(college_df$faculty_salary_avg)) + geom_vline(xintercept = mean(college_df$tuition)) + theme_solarized()
+
+# other options
+# theme_wsj()               — wall street journal
+# theme_economist()         — the economist
+# theme_fivethirtyeight()   — fivethirtyeight website theme
+
+ggplot(data = college_df, mapping = aes(x = tuition , y = faculty_salary_avg)) + geom_point(mapping = aes(color = sat_avg)) + geom_smooth() + theme_wsj()
+
+ggplot(data = college_df, mapping = aes(x = tuition , y = faculty_salary_avg)) + geom_point(mapping = aes(color = sat_avg)) + geom_smooth() + theme_economist()
+
+ggplot(data = college_df, mapping = aes(x = tuition , y = faculty_salary_avg)) + geom_point(mapping = aes(color = sat_avg)) + geom_smooth() + theme_fivethirtyeight()
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
