@@ -1,0 +1,264 @@
+---
+title: "Importing, Modifying, Filtering"
+author: "William Lizr"
+date: "2023-01-17"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r cars}
+summary(cars)
+```
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+# My Notes Start Here:
+## some useful basic commands:
+```{r}
+# a period sucks the 'piped' data into a certain place in the next command
+mtcars %>% dplyr::filter(hp >= 50) %>% summarize(. , upper_mean = mean(hp))
+# here the data is being sucked into the '.' place (it would do this automatically but sometimes this is important)
+
+# to get all the unique variables in a factor, use unique()
+# to select a certain column from a data frame, use select()
+iris %>% select(Species) %>% unique()
+
+#to get only certain rows, use slice()
+
+cars <- mtcars
+cars <- cars %>% slice(., c(2,3,4,5))
+cars
+#we will get 4 rows only, the ones selected above
+
+# to read in an Excel file, use the readxl() package, for CSV use read.csv() or read_csv()
+# for a base R dataframe we use read.csv()
+# for a tibble we use read_csv()
+
+# from readxl()
+read_excel(	data , sheet = "" , range = cell_cols("X:Y") )
+
+# exotic pipe operators
+' %<>% ' = ' %>% ' + ' <- '
+# use at the beginning of a line to input and rewrite a df at the end
+# d_frame <- d_frame %>% = d_frame %<>%
+cars <- mtcars
+cars %<>% select(cyl) %>% unique()
+cars
+
+```
+
+# data.frame vs Tibble vs data.table
+```{r}
+#to check class use the class() function
+# for a base  R Dataframe we use read.csv()
+# for a       Tibble we use read_csv()
+
+# data frame (df) vs vector:
+# df is a table essentially
+# vector is an array essentially
+
+#when using the group_by() command, we get a grouped_tibble
+tibble(iris) %>% group_by(Species) %>% class()
+
+#to convert to tibble, use as.tibble()
+class(iris)
+iris_tibble <- as_tibble(iris)
+iris_tibble
+class(iris_tibble)
+# this tibble won't be grouped
+
+```
+
+# generating sample data
+```{r}
+# sample numerical integer data
+v <- sample(x = 1:10, size = 1000, replace = TRUE)
+hist(v)
+
+#sample numerical data from a normal distribution
+v <- rnorm(10000, mean = 100, sd = 25)
+hist(v)
+#to see all distributions: use ?distribution
+
+# find 15 cars from defined dataset
+lux_cars <- c(rep("Seat", 80), rep("Lambo", 10), rep("Skoda", 50)) %>% sample(. , size = 50, replace = TRUE) %>% as.vector()
+
+# generate index values
+index <- seq(1, length(lux_cars), by = 1)
+
+# create a dataframe:
+df <- data.frame(index, lux_cars) %>% as_tibble()
+df
+
+lux_cars
+as_tibble(lux_cars)
+colnames(lux_cars)
+
+# to generate samples from a normal distribution, use "rnorm()"
+gen_dat <- as_tibble(round(rnorm(n = 10000, mean = 100, sd = 15), digits = 2))
+gen_dat
+
+#getting counts of unique values (and retyping to a tibble once again)
+gen_dat <- as_tibble(table(gen_dat))
+gen_dat
+
+# converting a whole factor to a numeric
+transform(gen_dat, value = as.numeric(value))
+```
+# subsetting
+```{r}
+df <- iris %>% as_tibble()
+
+#extract the first column like this:
+df[[1]]
+#or this:
+df[,1]
+
+```
+
+# intro to sapply
+```{r}
+
+new_iris <- iris %>% as_tibble()
+
+# getting the class for all columns in new_iris
+sapply(new_iris, class)
+
+# once again, the '.' pulls the data into the right spot after the next pipe
+new_iris <- new_iris %>% .[[2]]
+
+new_iris
+```
+
+# concatenating chars to a String
+```{r}
+
+paste0("Hi", "dear", "how", "are", "you", "today")
+
+# using a separator
+paste0(c("Hi", "dear", "how", "are", "you", "today"), collapse = "--")
+
+```
+
+# Using the mutate() function/verb
+```{r}
+# converting a column to a z-score
+df <- iris %>% as_tibble() 
+
+df <- df %>% mutate("z-score-sepal-length"=(Sepal.Length-mean(Sepal.Length))/sd(Sepal.Length))
+df
+
+```
+
+# date (dd/mm/yyyy) as a data type
+```{r}
+#first, lets generate some data
+allyears <- seq(1970, 2023, by = 1)
+allmonths <- seq(1, 12, by = 1)
+alldays <- seq(1,31, by = 1)
+
+#define how many observations we need
+pred_length <- 25
+
+# here we create sample vectors, which pull their values from the generated dates and months
+yr <- c(sample(allyears, size = pred_length, replace = TRUE))
+mnth <- c(sample(allmonths, size = pred_length, replace = TRUE))
+day <- c(sample(alldays, size = pred_length, replace = TRUE))
+
+#we combine the vectors into a data frame, then a tibble
+date_table <- data.frame(mnth, day, yr) %>% as_tibble()
+date_table
+
+#formatting as dates:
+
+# we put together each of the day, month and year columns
+concat_table <- date_table %>% mutate(. , "comb_date" = paste0(date_table$day,"-", date_table$mnth, "-" ,date_table$yr))
+concat_table
+
+# we put use the * lubridate * package to transform create a new column of data type 'date'
+library(lubridate)
+concat_table_dated <- concat_table %>% mutate(. , "dated_combo" = lubridate::dmy(concat_table$comb_date))
+concat_table_dated
+
+
+# to delete the redundant columns, lets use subsetting
+
+#first, make an index vector
+index_v <- seq(1, pred_length, by = 1)
+
+cleaned_dates <- concat_table_dated %>% .[[5]] %>% data.frame(index_v, .) %>% as_tibble()
+cleaned_dates
+
+#change the column names to be nice and tidy
+colnames(cleaned_dates) <- c("participant no.","date")
+```
+
+# Using the separate() function/verb
+## under the dplyr package
+```{r}
+# separating data into separate columns when merged
+# lets separate the data we previously made into dates from cleaned_dates
+
+separated_dates <- cleaned_dates %>% separate(., "date", c("year", "month","day"), sep = "-")
+
+#if the data isnt unifrom, we have to use the argument 'extra = merge', so that overflow data is put into the last column
+```
+
+# we can also use the dplyr library between deliminators like brackets with the extract() function
+```{r}
+
+```
+
+# Using the filter() verb
+```{r}
+# to get rid of missing values 
+df_clean <- mtcars %>% dplyr::filter(!is.na(mtcars$cyl))
+df_clean
+
+# lets import a base R dataset
+mtcars_offl <- mtcars
+# and make some values go missing...
+mtcars_offl[2:6,3] <- NA
+
+#to make sure each row has all values and doesn't contain an NA use the complete.cases() function
+df_complete <- mtcars_offl %>% dplyr::filter(., complete.cases(mtcars_offl))
+df_complete
+```
+
+# How to export to a csv
+## part of the readr library
+```{r}
+#to export to a new file
+df_clean %>% write_csv(., file = "cleaned_data.csv")
+
+#to export to an existing file name, we can append the data
+df_clean %>% write_csv(., file = "cleaned_data.csv", append = TRUE)
+#now the data is twice as long!
+```
+
+# how to export .rdata files
+## important if you need to save for example a grouped tibble, or other special types of data so that they retain their form
+```{r}
+# to save, the .rdata file name has to be the same as the variable name from the environment
+car_data <- mtcars
+car_data %>% save(file = "car_data.rdata")
+```
+
+
+# how to load .rdata files
+## !doesnt work
+```{r}
+
+new_df <- load(file = "car_data.rdata")
+```
+
+
+
+

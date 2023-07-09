@@ -1,0 +1,74 @@
+---
+title: "Programming with TidyVerse"
+author: "William Lizr"
+date: "2023-01-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r cars}
+summary(cars)
+```
+
+# Selecting multiple columns repetitively
+## useful_cols()
+```{r}
+
+library(tidyverse)
+
+```
+
+# Writing a custom utility function
+```{r}
+
+# using verb_s:
+###     group_by
+### vs  group_by_
+## allows you to pass arguments to them as Strings
+# this in turn allows you to use them in your own custom functions
+
+```
+
+# Programming after TidyVerse 0.7.0
+## before it was possible to use the verb_s
+## now we have to use quo and quos
+```{r}
+
+# we can assign variable names to a certain name using 
+# variable <- quo(variable name)
+# variables <- quos(variable names)
+
+# to unquote from the quasi marking we use:
+# for one variable: !! or UQ 
+# for multiple: !!! or 
+
+
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+

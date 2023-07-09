@@ -1,0 +1,198 @@
+---
+title: "Summarizing and Tabulating"
+author: "William Lizr"
+date: "2023-01-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r cars}
+summary(cars)
+```
+
+# My Notes start here:
+
+# Sampling and cross-validation: SAMPLE_N, SAMPLE_FRAC, SUMMARISE
+```{r}
+# group some data
+grouped_species <- iris %>% group_by(. , Species) 
+grouped_species
+
+#get a small sample of 25% of each group
+grouped_sample <- grouped_species %>% sample_frac(. , 0.25)
+grouped_sample
+
+# get a certain number of sample observations
+iris_sample <- iris %>% sample_n(5)
+iris_sample
+
+#to get number of obs. in each group:
+iris %>% group_by(Species) %>% count()
+
+# again, group and sample <= than observations per group
+iris_double <- iris %>% group_by(Species) %>% sample_n(50)
+iris_double
+
+# here, group and sample > than observations per group
+# we have to include 'replace = TRUE', so that we can sample an observation more than once
+iris_double <- iris %>% group_by(Species) %>% sample_n(51, replace = TRUE)
+iris_double
+
+
+iris_double <- iris %>% group_by(Species) %>% sample_n(100, replace = TRUE) 
+
+summary <- iris_double %>% summarise(., mean(Sepal.Width))
+summary
+
+# we can even re-sample to much higher numbers
+iris_double_ <- iris %>% group_by(Species) %>% sample_n(1000, replace = TRUE) 
+summary_ <- iris_double_ %>% summarise(., mean(Sepal.Width))
+view(summary_)
+
+```
+
+# Important to remember that GROUPS ARE EXCLUSIVE TO TIBBLES AND THE TIDYVERSE
+## We can only use functions that are compatible with tidyverse, otherwise they won't work
+
+# grouping by multiple columns: MUTATE, COUNT
+```{r}
+
+teeth <- ToothGrowth
+
+# like this we can add a column for every row, representing how many observations there are IN THE GROUP THAT THE ROW IS IN
+# this doesn't mean there are that many observations with the same parameters exactly as the given row
+group_teeth <- teeth %>% group_by(supp, dose) %>% mutate(sum = n(), mean_tooth = mean(len)) %>% view()
+# to see this, compare sum and mean_tooth
+
+# a way to verify this is like this:
+teeth_obs <- teeth %>% group_by(supp, dose) %>% count() %>% view() # yields 6 times 10 observations
+teeth %>% count() %>% view() #yields 60 observations 
+
+# we can also use the n() command
+teeth %>% group_by(supp) %>% summarize(members = n()) %>% view()
+
+# to view all the groups and their member values, we can add unique() with mutate() and select()
+#mutate to add member count to all rows
+#select to make a single column for the unique() command
+#unique to select unique values only
+model <- teeth %>% group_by(supp) %>% mutate(members = n()) %>% select(members) %>% unique()
+model %>% n_groups() %>% view()
+view(model)
+
+
+# to find a number of groups, use n_group()
+teeth %>% group_by(supp) %>% n_groups() %>% view() # 2 groups
+teeth %>% group_by(supp,dose) %>% n_groups() %>% view() # 6 groups
+
+```
+# to UNGROUP a tibble, use ungroup()
+
+
+# calculating cumulative values: CUMSUM(), CUMALL(), CUMANY()
+```{r}
+# cumulative values work in the order that the rows are organized; like: cumsum()
+# therefore we should use the arrange() command
+
+#our dataset
+
+cars <- mtcars %>% arrange(.,mpg) %>% group_by(gear) %>% mutate(running.total = cumsum(hp))
+
+#this model is arbitrary, as 'cyl' isn't continuous
+cars %>% ggplot(aes(x = cyl, y = running.total, color = hp)) + geom_line()
+cars %>% ggplot(aes(x = cyl, y = running.total)) + geom_smooth()
+```
+
+#using CUMMEAN()
+```{r}
+
+```
+
+#splitting
+#splitting before or after an event or numbers with CUMALL/CUMANY + FILTER
+```{r}
+# import a dataset
+cars <- mtcars
+
+cars %>% arrange(mpg) %>% group_by(. , cyl) %>% mutate(. , running_hp = cumsum(hp), hp_mean = round(cummean(hp), digits = 1) ) %>% view() %>% filter(!cumany(hp_mean <= 100)) %>% view()
+
+# use all data BEFORE a certain date/number
+
+# use the ALL command
+# use CUMALL()
+# boolean switch that returns all values UPTO a certain logical condition
+# starts as TRUE
+
+
+
+# use all data AFTER a certain date or number
+
+# use the ANY command
+# use CUMANY()
+# boolean switch that returns all values AFTER a certain logical condition
+# starts as FALSE
+
+
+```
+
+# summarizing data with DPLYR
+```{r}
+# not using summarize
+nosummarize <- iris %>% group_by(Species) %>% mutate(observations = n(), mean_sepal_length = mean(Sepal.Length), mean_sepal_width = mean(Sepal.Width)) %>% select(observations, mean_sepal_width, mean_sepal_length) %>% unique() %>% view()
+
+
+# using summarize()
+summarize <- iris %>% group_by(Species) %>% summarise(obs = n(), mean_sl = mean(Sepal.Length), mean_sw = mean(Sepal.Width)) %>% view()
+
+# here we can see they are equivalent
+comparison <- c(nosummarize, summarize)
+
+#we can also use summarise_all() and summarise_if()
+# this code summarises the numerical columns
+iris %>% group_by(Species) %>% summarise_if(is.numeric, mean) %>% view()
+```
+
+# using GROUPS as a part of the Tidyverse
+## and why to UNGROUP after finishing
+```{r}
+# even if we use select on some grouped dataset, group variables will be included as part of the data structure!!
+
+# groups are very boisterous, if you group by one set of variables, and then group again down the pipeline, your data will only be grouped by that second set of variables
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

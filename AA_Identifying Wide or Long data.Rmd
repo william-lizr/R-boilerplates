@@ -1,0 +1,104 @@
+---
+title: "Identifying Wide or Long data"
+author: "William Lizr"
+date: "2023-01-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r cars}
+summary(cars)
+```
+
+# WHat is Tidy Data? 
+## each column: one variable
+## each row: one observation
+
+# variables that don't fit the structure should be stored in a separate table
+## (run below chunk for image)
+```{r pressure, echo=FALSE, fig.cap="A caption", out.width = '100%'}
+knitr::include_graphics("tidy data.png")
+```
+
+# data visualization: ggplot()
+
+# data wrangling: dplyr , tidyr
+
+# purrr and modelR libraries
+
+# using the nest command to subset dataframes into cells of rows
+```{r}
+# we can use nest() to put a dataframe/table into a cell of a row to get, for example: 12 rows of data, with 3 categorical columns and a model in the 4th column of our data
+
+#here's an example with iris again
+
+# here we create the nested data frames
+by_species <- iris %>% 
+  group_by(Species) %>% 
+  nest() # tidyr
+
+
+species <- function(df) {
+  lm(Sepal.Length ~ ns(Sepal.Width, 3), data = df)
+}
+
+
+by_species <- by_species %>% 
+  mutate(model = map(data, species)) # purrr
+
+
+by_species <- by_species %>% 
+  mutate(
+    predictors = map2(data, model, add_predictions)
+  )
+
+```
+
+# so, how do we visualize this nested data
+```{r}
+# first we have to unnest() our data, so that we can use it in LONG data form, for ggplot
+
+by_species_unn <- by_species %>% unnest(., predictors)
+view(by_species_unn)
+
+
+# then we visualize
+by_species_unn %>% ggplot()+ stat_smooth(aes(x = Sepal.Length, y = Sepal.Width), method = "lm", col = "yellow", se = FALSE)  + geom_point(aes(x = Sepal.Length, y = Sepal.Width, col = Species)) 
+```
+
+
+# Converting WIDE data —> LONG data
+## Using the gather() verb
+```{r}
+# forcing data from column to row with gather()
+# gather(new-categorical-column , new-value-column, unlimited_col_to_select)
+
+
+# using contains() to select the appropriate columns
+# for example contains("year")
+```
+
+
+# Converting LONG data —> WIDE data
+## Using the spread() verb
+```{r}
+
+# to be finished
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
