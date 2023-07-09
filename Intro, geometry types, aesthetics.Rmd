@@ -1,0 +1,307 @@
+---
+title: "Intro, geometry types, aesthetics"
+author: "William Lizr"
+date: "2023-01-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Tibble vs Tribble             ==============================================
+## a tibble has column TYPES
+## a tribble creates a tibble by inputting ROW data, not column data as vectors
+```{r}
+
+
+# creating a data frame
+df1 <- data.frame(c("John", "David"), c("Lennon", "Copperfield"), c(85, 110))
+# fixing the column names
+colnames(df1) <- c("First","Last","IQ")
+
+
+
+# making a tibble, fixing column names
+df2 <- tibble(c("John", "David"), c("Lennon", "Copperfield"), c(85, 110))
+colnames(df2) <- c("First","Last","IQ")
+# fixing the type of of the third column dbl —> int
+df2$IQ <- as.integer(df2$IQ)
+
+
+
+# making a tibble by row (tribble command)
+df3 <- tribble( ~First, ~Last, ~iQ, 
+                "Mark", "Hammond", 150, 
+                "Charlie", "Daniels", 129, 
+                "Ramsey", "Christopher", 102)
+
+df3$iQ <- as.integer(df3$iQ)
+```
+
+# always import ggplot2 ======================================================
+```{r}
+# and import the conflicted package to manage your conflicts and function collisions
+library(conflicted)
+
+# tidyverse imports ggplot2, and other useful operators like pipes
+library(tidyverse)
+
+# we are also going to use ggmap
+library(ggmap)
+
+```
+
+# reading data with read_csv()
+##     because of the underscore    -> creates a tibble
+##     a dot                        -> creates a data.frame
+
+```{r}
+# import csv
+college_df <- read_csv(file = "college_dataset.csv")
+# we see it is a tibble
+class(college_df)
+
+
+# now we are going to factorize some columns
+college_df <- college_df %>% mutate(region = as.factor(region),
+                                    state = as.factor(state), control = as.factor(control), gender = as.factor(gender), highest_degree = as.factor(highest_degree))
+
+# now we can see them as factors when we run summary()
+summary(college_df)
+
+
+# to remove strings from numericals, we FORCE them to be NUMERICAL types, then we remove NA values, which R generates to subsitute for values we can't convert
+college_df <- college_df %>% mutate(loan_default_rate = as.numeric(loan_default_rate))
+# we get a message:
+# ' Warning: NAs introduced by coercion '
+
+# now when we run summary we get the loan_default_rate as a numerical variable
+summary(college_df)
+
+
+# here we're going to get rid of the NA values in this column
+college_df <- college_df %>% dplyr::filter(!is.na(loan_default_rate))
+# we can also use the complete.cases 
+college_df <- college_df %>% dplyr::filter(complete.cases(.))
+
+# we also gon convert this bish to percent
+college_df <- college_df %>% mutate(loan_default_rate = round(loan_default_rate*100, digits = 1))
+
+summary(college_df)
+
+```
+
+# the grammar of graphics ====================================================
+## data         the raw data
+## geometries   shapes we use to visualize
+## aesthetics   properties of geometries
+## scales       mappings between geometries and aesthetics
+
+```{r}
+# 1: data
+# to initialize an empty plot canvas, we use the ggplot() command
+# even if we give it data, it doesn't know what to do with it
+ggplot(data = college_df)
+
+# 2: geometry
+# then we add elements like geom_point(), geom_smooth(), geom_violin(), etc.
+ggplot(data = college_df) + geom_point(mapping = aes(x = tuition, y = sat_avg))
+
+
+# 3: we add some x and y axis labels and a chart title
+ggplot(data = college_df) + geom_point(mapping = aes(x = tuition, y = sat_avg)) + labs(title = "correlation of tuition and average sat") + xlab("Tuition") + ylab("SAT score")
+
+```
+
+
+# Scatterplots
+## using geom_point()
+## basic properties: x = __ ; y = __ ;
+### shape       shape of points by categorical variable
+### color       point color
+### size        point size
+### alpha       transparency
+
+# see above code block for initial example
+```{r}
+
+# important to note:
+# the 'mapping = aes(...)' is where you put aesthetics or features of the GRAPH that should REFLECT DIFFERENCES IN THE DATASET
+# if we just want to adjust OVERALL shape, color, alpha or size — then we have to put it outside the mapping
+
+# outside
+ggplot(data = college_df) + geom_point(mapping = aes(x = tuition, y = sat_avg), color = 'blue') + labs(title = "correlation of tuition and average sat") + xlab("Tuition") + ylab("SAT score")
+
+# inside (linked to a categorical variable; here, we used a 4 layer categorical variable called region)
+ggplot(data = college_df) + geom_point(mapping = aes(x = tuition, y = sat_avg, color = region)) + labs(title = "correlation of tuition and average sat") + xlab("Tuition") + ylab("SAT score")
+
+```
+
+# More geometries — LINES
+## still specify X and Y axes for the lines to display
+
+## geom_line() connects the dots
+```{r}
+
+ggplot(data = college_df, mapping = aes(x = tuition, y = sat_avg, color = region)) + geom_point() + geom_line()
+
+
+```
+
+
+## geom_smooth() fits a line to the points like a trend
+```{r}
+
+ggplot(data = college_df, mapping = aes(x = tuition, y = sat_avg, color = region)) + geom_point() + geom_smooth()
+
+# to get rid of the standard error (SE) area around the 'smoothers', we use 'SE = FALSE'
+ggplot(data = college_df, mapping = aes(x = tuition, y = sat_avg, color = region)) + geom_point() + geom_smooth(se = FALSE)
+
+# lets also decrease the alpha of the points to be more readable
+ggplot(data = college_df, mapping = aes(x = tuition, y = sat_avg, color = region)) + geom_point(alpha = 0.25) + geom_smooth(se = FALSE) 
+
+```
+
+
+# BARS AND COLUMNS
+## geom_bar()
+### specify X VALUE
+### uses count() as the Y VALUE 
+
+## geom_col()
+### specify X VALUE
+### allows user to specify the Y VALUE
+
+
+# geom_bar()
+```{r}
+
+
+
+```
+
+
+# geom_col()
+```{r}
+
+
+# custom Y VALUE
+```
+
+
+# HISTOGRAMS: using geom_histogram()
+## continuous variable on the x axis is necessary, bins are a feature of that
+```{r}
+
+ggplot(data = college_df) + geom_histogram(mapping = aes(x = sat_avg))
+
+# we can change the range of each 'block'(bin), to get a more granular graph:
+ggplot(data = college_df) + geom_histogram(mapping = aes(x = sat_avg), binwidth = 3)
+# or we can code the NUMBER OF BINS, instead of BIN WIDTH
+ggplot(data = college_df) + geom_histogram(mapping = aes(x = sat_avg), bins = 30)
+```
+
+# JITTER PLOTS
+## with geom_jitter()
+```{r}
+# first we need to see a bad use case of an alternative
+# for example: geom_point()
+ggplot(data = college_df) + geom_point(mapping = aes(x = control, y = tuition))
+# this doesnt allow us to see the resolution of 
+
+# here we have some more width to the data
+ggplot(data = college_df) + geom_jitter(mapping = aes(x = control, y = tuition))
+
+
+```
+
+# BOXPLOTS
+## with geom_boxplot()
+```{r}
+ggplot(college_df) + geom_boxplot(aes(x = control, y = tuition))
+
+# we can also tweak the outlier presence
+ggplot(college_df) + geom_boxplot(aes(x = control, y = tuition, fill = control), outlier.color = 'red')
+
+# we can modify their shape, size, color, fill, etc
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
